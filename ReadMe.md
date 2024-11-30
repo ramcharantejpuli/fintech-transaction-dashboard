@@ -129,8 +129,15 @@ npm start
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Contact
+## Author
 
-Ram Charan Tej Puli - [GitHub](https://github.com/ramcharantejpuli)
+**Puli Ram Charan Tej**
+- Email: ramcharantejpuli@gmail.com
+- GitHub: [@ramcharantejpuli](https://github.com/ramcharantejpuli)
+- LinkedIn: [Puli Ram Charan Tej](https://www.linkedin.com/in/ramcharantejpuli)
 
-Project Link: [https://github.com/ramcharantejpuli/fintech-transaction-dashboard](https://github.com/ramcharantejpuli/fintech-transaction-dashboard)
+## Project Link
+
+[https://github.com/ramcharantejpuli/fintech-transaction-dashboard](https://github.com/ramcharantejpuli/fintech-transaction-dashboard)
+
+Copyright 2024 Puli Ram Charan Tej. All rights reserved.
