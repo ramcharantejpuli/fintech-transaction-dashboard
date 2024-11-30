@@ -9,12 +9,12 @@ A comprehensive full-stack financial management platform featuring real-time tra
 
 ## Features
 
-- 💰 Real-time transaction management
-- 📊 Interactive financial analytics
-- 📈 Dynamic spending visualizations
-- 🔒 Secure transaction processing
-- 📱 Responsive design
-- 🎯 Savings goal tracking
+- Real-time transaction management
+- Interactive financial analytics
+- Dynamic spending visualizations
+- Secure transaction processing
+- Responsive design
+- Savings goal tracking
 
 ## Tech Stack
 
@@ -75,6 +75,16 @@ npm start
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:3001
 
+## Screenshots
+
+### Dashboard Overview
+![Dashboard](./screenshots/dashboard.png)
+*Main dashboard showing real-time financial tracking and analytics*
+
+### Transaction Management
+![Adding Transaction](./screenshots/adding%20transaction.png)
+*Transaction form with comprehensive input validation*
+
 ## Key Features
 
 ### Transaction Management
@@ -82,12 +92,6 @@ npm start
 - Process refunds
 - Categorize transactions
 - View transaction history
-
-### Financial Analytics
-- Real-time balance tracking
-- Monthly spending analysis
-- Category-wise breakdown
-- Savings goal progress
 
 ### Security Features
 - Input validation
