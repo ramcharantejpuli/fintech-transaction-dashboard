@@ -2,29 +2,39 @@ const path = require("path");
 
 module.exports = {
   development: {
-    client: "sqlite3",
+    client: 'sqlite3',
     connection: {
-      filename: path.join(__dirname, "database/dev.sqlite3"),
+      filename: './dev.sqlite3'
     },
     useNullAsDefault: true,
     migrations: {
-      directory: path.join(__dirname, "database/migrations"),
+      directory: './src/migrations'
     },
     seeds: {
-      directory: path.join(__dirname, "database/seeds"),
+      directory: './src/seeds'
     },
+    pool: {
+      afterCreate: (conn, cb) => {
+        conn.run('PRAGMA foreign_keys = ON', cb);
+      }
+    }
   },
   test: {
-    client: "sqlite3",
+    client: 'sqlite3',
     connection: {
-      filename: ":memory:",
+      filename: ':memory:'
     },
     useNullAsDefault: true,
     migrations: {
-      directory: path.join(__dirname, "database/migrations"),
+      directory: './src/migrations'
     },
     seeds: {
-      directory: path.join(__dirname, "database/seeds"),
+      directory: './src/seeds'
     },
-  },
+    pool: {
+      afterCreate: (conn, cb) => {
+        conn.run('PRAGMA foreign_keys = ON', cb);
+      }
+    }
+  }
 };

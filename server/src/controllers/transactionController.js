@@ -1,154 +1,132 @@
 const Transaction = require("../models/Transaction");
 const { validationResult } = require("express-validator");
-const knex = require("../config/database");
+const db = require("../config/database");
+const { v4: uuidv4 } = require('uuid');
 
-// Cache for idempotency
-const processedTransactions = new Map();
+// Cache for idempotency keys
+const processedRequests = new Map();
 
-exports.getTransactions = async (req, res, next) => {
+// Get all transactions
+exports.getAllTransactions = async (req, res) => {
   try {
-    const transactions = await knex("transactions")
-      .select("*")
-      .orderBy("date", "desc")
-      .limit(50);
-
+    const transactions = await db('transactions')
+      .select('*')
+      .orderBy('date', 'desc');
     res.json(transactions);
   } catch (error) {
-    console.error("Error fetching transactions:", error);
-    res.status(500).json({ error: "Failed to fetch transactions" });
+    res.status(500).json({ error: 'Failed to fetch transactions' });
   }
 };
 
-exports.getSpendingByCategory = async (req, res, next) => {
+// Get spending by category
+exports.getSpendingByCategory = async (req, res) => {
   try {
-    const result = await knex("transactions")
-      .select("category")
-      .sum("amount as amount")
-      .count("* as transactionCount")
-      .where("type", "expense")
-      .groupBy("category");
-
-    res.json(result);
+    const spending = await db('transactions')
+      .select('category')
+      .sum('amount as amount')
+      .count('* as transactionCount')
+      .where('type', 'expense')
+      .groupBy('category');
+    res.json(spending);
   } catch (error) {
-    console.error("Error fetching spending by category:", error);
-    res.status(500).json({ error: "Failed to fetch spending data" });
+    res.status(500).json({ error: 'Failed to fetch spending by category' });
   }
 };
 
-exports.createTransaction = async (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+// Create a new transaction
+exports.createTransaction = async (req, res) => {
+  const idempotencyKey = req.headers['idempotency-key'];
+
+  // Check idempotency key cache
+  if (idempotencyKey && processedRequests.has(idempotencyKey)) {
+    return res.status(200).json(processedRequests.get(idempotencyKey));
   }
-
-  const { amount, category, type, description } = req.body;
-  const idempotencyKey = req.headers["idempotency-key"];
-
-  if (idempotencyKey && processedTransactions.has(idempotencyKey)) {
-    return res.json(processedTransactions.get(idempotencyKey));
-  }
-
-  const trx = await knex.transaction();
 
   try {
-    // Validate category exists
-    const categoryExists = await trx("categories")
-      .where("name", category)
-      .first();
+    const { amount, category, type, description } = req.body;
 
-    if (!categoryExists) {
-      await trx.rollback();
-      return res.status(400).json({ error: "Invalid category" });
+    // Validate required fields
+    if (!amount || !category || !type || !description) {
+      return res.status(400).json({ error: 'Missing required fields' });
     }
 
-    const [transaction] = await trx("transactions")
-      .insert({
-        amount,
-        category,
-        type,
-        description,
-        date: new Date(),
-      })
-      .returning("*");
+    // Validate amount
+    if (typeof amount !== 'number' || amount <= 0) {
+      return res.status(400).json({ error: 'Invalid amount' });
+    }
 
-    await trx.commit();
+    // Validate type
+    if (!['income', 'expense', 'refund'].includes(type)) {
+      return res.status(400).json({ error: 'Invalid transaction type' });
+    }
 
+    const transaction = {
+      id: uuidv4(),
+      amount,
+      category,
+      type,
+      description,
+      date: Date.now(),
+      status: 'completed'
+    };
+
+    await db('transactions').insert(transaction);
+
+    // Store in idempotency cache if key provided
     if (idempotencyKey) {
-      processedTransactions.set(idempotencyKey, transaction);
-      // Clear the cache after 24 hours
-      setTimeout(() => {
-        processedTransactions.delete(idempotencyKey);
-      }, 24 * 60 * 60 * 1000);
+      processedRequests.set(idempotencyKey, transaction);
     }
 
     res.status(201).json(transaction);
   } catch (error) {
-    await trx.rollback();
-    console.error("Error creating transaction:", error);
-    res.status(500).json({ error: "Failed to create transaction" });
+    res.status(500).json({ error: 'Failed to create transaction' });
   }
 };
 
-exports.processRefund = async (req, res, next) => {
+// Process a refund
+exports.processRefund = async (req, res) => {
   const { transactionId } = req.params;
-  const idempotencyKey = req.headers["idempotency-key"];
-
-  if (idempotencyKey && processedTransactions.has(idempotencyKey)) {
-    return res.json(processedTransactions.get(idempotencyKey));
-  }
-
-  const trx = await knex.transaction();
 
   try {
     // Find the original transaction
-    const originalTransaction = await trx("transactions")
-      .where("id", transactionId)
+    const transaction = await db('transactions')
+      .where('id', transactionId)
       .first();
 
-    if (!originalTransaction) {
-      await trx.rollback();
-      return res.status(404).json({ error: "Transaction not found" });
+    if (!transaction) {
+      return res.status(404).json({ error: 'Transaction not found' });
     }
 
-    if (originalTransaction.type !== "expense") {
-      await trx.rollback();
-      return res.status(400).json({ error: "Can only refund expense transactions" });
+    if (transaction.status === 'refunded') {
+      return res.status(400).json({ error: 'Transaction already refunded' });
     }
 
-    if (originalTransaction.status === "refunded") {
-      await trx.rollback();
-      return res.status(400).json({ error: "Transaction already refunded" });
+    if (transaction.type !== 'expense') {
+      return res.status(400).json({ error: 'Can only refund expense transactions' });
     }
 
     // Create refund transaction
-    const [refundTransaction] = await trx("transactions")
-      .insert({
-        amount: originalTransaction.amount,
-        category: originalTransaction.category,
-        type: "refund",
-        description: `Refund for transaction ${transactionId}`,
-        date: new Date(),
-      })
-      .returning("*");
+    const refundTransaction = {
+      id: uuidv4(),
+      amount: transaction.amount,
+      category: transaction.category,
+      type: 'refund',
+      description: `Refund for transaction ${transactionId}`,
+      date: Date.now(),
+      status: 'completed'
+    };
 
     // Update original transaction status
-    await trx("transactions")
-      .where("id", transactionId)
-      .update({ status: "refunded" });
+    await db('transactions')
+      .where('id', transactionId)
+      .update({ status: 'refunded' });
 
-    await trx.commit();
-
-    if (idempotencyKey) {
-      processedTransactions.set(idempotencyKey, refundTransaction);
-      setTimeout(() => {
-        processedTransactions.delete(idempotencyKey);
-      }, 24 * 60 * 60 * 1000);
-    }
+    // Insert refund transaction
+    await db('transactions').insert(refundTransaction);
 
     res.json(refundTransaction);
   } catch (error) {
-    await trx.rollback();
-    console.error("Error processing refund:", error);
-    res.status(500).json({ error: "Failed to process refund" });
+    console.error('Error processing refund:', error);
+    res.status(500).json({ error: 'Failed to process refund' });
   }
 };

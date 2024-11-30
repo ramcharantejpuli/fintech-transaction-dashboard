@@ -3,7 +3,6 @@ const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
 const routes = require("./routes");
-const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
@@ -16,8 +15,11 @@ app.use(express.json());
 // Routes
 app.use("/api", routes);
 
-// Error handling
-app.use(errorHandler);
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: "Internal server error" });
+});
 
 const PORT = process.env.PORT || 3001;
 
