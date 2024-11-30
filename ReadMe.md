@@ -1,40 +1,136 @@
-# Fintech Assessment Project
+# Fintech Transaction Dashboard
 
-## Overview
-This project is a full-stack financial dashboard application that provides budget tracking and financial analysis capabilities.
+A comprehensive full-stack financial management platform featuring real-time transaction tracking, analytics, and interactive visualizations.
 
-## Project Structure
-- `client/`: React.js frontend application
-- `server/`: Node.js backend application with SQLite database
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Node](https://img.shields.io/badge/node-%3E%3D%2014.0.0-green.svg)
+![React](https://img.shields.io/badge/react-%5E18.0.0-blue.svg)
+![TypeScript](https://img.shields.io/badge/typescript-%5E4.9.0-blue.svg)
+
+## Features
+
+- 💰 Real-time transaction management
+- 📊 Interactive financial analytics
+- 📈 Dynamic spending visualizations
+- 🔒 Secure transaction processing
+- 📱 Responsive design
+- 🎯 Savings goal tracking
+
+## Tech Stack
+
+### Frontend
+- React with TypeScript
+- Chart.js for visualizations
+- Tailwind CSS for styling
+- Axios for API communication
+
+### Backend
+- Node.js with Express
+- SQLite database
+- Knex.js ORM
+- Input validation middleware
 
 ## Getting Started
 
 ### Prerequisites
-- Node.js (v16 or higher)
-- npm (v8 or higher)
+- Node.js >= 14.0.0
+- npm >= 6.14.0
 
 ### Installation
+
 1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm run install-all
-   ```
-
-### Running the Application
-1. Start both frontend and backend:
-   ```bash
-   npm run dev
-   ```
-2. Access the application at `http://localhost:3000`
-
-## Features
-- Budget tracking dashboard
-- Category-wise spending analysis
-- Transaction management
-- Refund processing
-
-## Testing
-Run tests for both frontend and backend:
 ```bash
-npm test
+git clone https://github.com/ramcharantejpuli/fintech-transaction-dashboard.git
+cd fintech-transaction-dashboard
 ```
+
+2. Install dependencies
+```bash
+# Install server dependencies
+cd server
+npm install
+
+# Install client dependencies
+cd ../client
+npm install
+```
+
+3. Setup database
+```bash
+cd ../server
+npx knex migrate:latest
+npx knex seed:run
+```
+
+4. Start the application
+```bash
+# Start server (from server directory)
+npm start
+
+# Start client (from client directory)
+npm start
+```
+
+5. Access the application
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:3001
+
+## Key Features
+
+### Transaction Management
+- Add income and expenses
+- Process refunds
+- Categorize transactions
+- View transaction history
+
+### Financial Analytics
+- Real-time balance tracking
+- Monthly spending analysis
+- Category-wise breakdown
+- Savings goal progress
+
+### Security Features
+- Input validation
+- Transaction idempotency
+- Error handling
+- Status tracking
+
+## API Documentation
+
+### Endpoints
+
+#### GET /api/transactions
+- Retrieves all transactions
+- Supports pagination
+- Orders by date descending
+
+#### GET /api/transactions/by-category
+- Returns spending by category
+- Includes transaction counts
+
+#### POST /api/transactions
+- Creates new transactions
+- Validates input data
+- Returns transaction details
+
+#### POST /api/transactions/refund/:id
+- Processes transaction refunds
+- Updates transaction status
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Contact
+
+Ram Charan Tej Puli - [GitHub](https://github.com/ramcharantejpuli)
+
+Project Link: [https://github.com/ramcharantejpuli/fintech-transaction-dashboard](https://github.com/ramcharantejpuli/fintech-transaction-dashboard)
